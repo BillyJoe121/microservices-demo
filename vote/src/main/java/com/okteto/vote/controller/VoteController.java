@@ -1,10 +1,7 @@
 package com.okteto.vote.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -15,21 +12,42 @@ import org.thymeleaf.util.StringUtils;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.concurrent.CompletableFuture;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.UUID;
 
+/**
+ * Controlador principal de votación.
+ *
+ * Aplica el patrón Observer: al recibir un voto, notifica a todos los
+ * VoteEventHandler registrados (KafkaVoteHandler, LogVoteHandler), sin
+ * acoplar directamente la lógica de Kafka o logging a este controlador.
+ */
 @Controller
 public class VoteController {
     private static final String OPTION_A_ENV_VAR = "OPTION_A";
     private static final String OPTION_B_ENV_VAR = "OPTION_B";
-    private static final String KAFKA_TOPIC = "votes";
-
-    private final Logger logger = LoggerFactory.getLogger(VoteController.class);
 
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
+
+    /**
+     * Lista de manejadores (Observers) que se notifican al recibir un voto.
+     * Para agregar un nuevo comportamiento (métricas, auditoría, etc.),
+     * basta con agregar un nuevo handler a esta lista.
+     */
+    private List<VoteEventHandler> voteHandlers;
+
+    private List<VoteEventHandler> getHandlers() {
+        if (voteHandlers == null) {
+            voteHandlers = List.of(
+                new KafkaVoteHandler(kafkaTemplate),
+                new LogVoteHandler()
+            );
+        }
+        return voteHandlers;
+    }
 
     @GetMapping("/")
     String index(@CookieValue(name = "voter_id", defaultValue = "") String voterId,
@@ -63,29 +81,19 @@ public class VoteController {
         model.addAttribute("optionA", v.getOptionA());
         model.addAttribute("optionB", v.getOptionB());
         model.addAttribute("hostname", v.getHostname());
-        // We pass the vote received in the post request
         model.addAttribute("vote", vote);
+
         if (StringUtils.isEmpty(voter)) {
             voter = UUID.randomUUID().toString();
         }
-        logger.info(String.format("vote received for '%s'!", vote));
 
         Cookie cookie = new Cookie("voter_id", voter);
         response.addCookie(cookie);
 
-        CompletableFuture<SendResult<String, String>> future = kafkaTemplate.send(KAFKA_TOPIC, voter, vote);
-
-        future.whenComplete((result, ex) -> {
-            if (ex == null) {
-                logger.info("Message [{}] delivered with offset {}",
-                        vote,
-                        result.getRecordMetadata().offset());
-            } else {
-                logger.warn("Unable to deliver message [{}]. {}",
-                        vote,
-                        ex.getMessage());
-            }
-        });
+        // Patrón Observer: notificar a todos los handlers registrados
+        final String finalVoter = voter;
+        final String finalVote = vote;
+        getHandlers().forEach(handler -> handler.onVoteReceived(finalVoter, finalVote));
 
         return "index";
     }
@@ -135,3 +143,4 @@ public class VoteController {
         }
     }
 }
+
