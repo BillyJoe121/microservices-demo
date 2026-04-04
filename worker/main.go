@@ -1,12 +1,11 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
-
-	"database/sql"
-	"fmt"
 
 	_ "github.com/lib/pq"
 
@@ -29,11 +28,43 @@ const (
 	dbname   = "votes"
 )
 
+// ---------------------------------------------------------------------------
+// Patrón Strategy: ConnectStrategy
+//
+// Define el contrato para cualquier estrategia de conexión a un servicio
+// externo. Una estrategia es simplemente una función que intenta conectar
+// y devuelve un error si falla.
+//
+// Permite cambiar el mecanismo de retry (simple, exponential backoff, etc.)
+// sin tocar la lógica específica de cada servicio.
+// ---------------------------------------------------------------------------
+
+// ConnectStrategy es el tipo que representa una estrategia de conexión.
+// Cada servicio (Kafka, PostgreSQL) proporciona su propia implementación.
+type ConnectStrategy func() error
+
+// retryUntilConnected ejecuta la estrategia dada en un bucle hasta que
+// tenga éxito (err == nil). Es el contexto del patrón Strategy.
+func retryUntilConnected(strategy ConnectStrategy, serviceName string) {
+	fmt.Printf("Waiting for %s...\n", serviceName)
+	for {
+		if err := strategy(); err == nil {
+			fmt.Printf("%s connected!\n", serviceName)
+			return
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+
 func main() {
 	db := openDatabase()
 	defer db.Close()
 
-	pingDatabase(db)
+	// Estrategia de conexión a PostgreSQL: hacer ping hasta que responda
+	retryUntilConnected(func() error {
+		return db.Ping()
+	}, "postgresql")
 
 	dropTableStmt := `DROP TABLE IF EXISTS votes`
 	if _, err := db.Exec(dropTableStmt); err != nil {
@@ -79,6 +110,8 @@ func main() {
 	log.Println("Processed", *messageCountStart, "messages")
 }
 
+// openDatabase abre una conexión a PostgreSQL (sin verificar conectividad aún).
+// El retry real se hace via retryUntilConnected con la estrategia db.Ping().
 func openDatabase() *sql.DB {
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	for {
@@ -89,27 +122,23 @@ func openDatabase() *sql.DB {
 	}
 }
 
-func pingDatabase(db *sql.DB) {
-	fmt.Println("Waiting for postgresql...")
-	for {
-		if err := db.Ping(); err == nil {
-			fmt.Println("Postgresql connected!")
-			return
-		}
-	}
-}
-
+// getKafkaMaster aplica la estrategia de conexión a Kafka:
+// intenta crear un consumer hasta que tenga éxito.
 func getKafkaMaster() sarama.Consumer {
 	kingpin.Parse()
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	brokers := *brokerList
-	fmt.Println("Waiting for kafka...")
-	for {
-		master, err := sarama.NewConsumer(brokers, config)
-		if err == nil {
-			fmt.Println("Kafka connected!")
-			return master
-		}
-	}
+
+	var master sarama.Consumer
+
+	// Estrategia de conexión a Kafka: crear consumer hasta que no falle
+	retryUntilConnected(func() error {
+		var err error
+		master, err = sarama.NewConsumer(brokers, config)
+		return err
+	}, "kafka")
+
+	return master
 }
+
