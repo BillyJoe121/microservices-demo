@@ -1,3 +1,23 @@
+FROM golang:1.24 AS builder
+
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN CGO_ENABLED=0 GOOS=linux go build -o /worker ./
+
+FROM gcr.io/distroless/static:nonroot
+
+COPY --from=builder /worker /worker
+
+EXPOSE 8080
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/worker"]
 FROM golang:1.24.1-bookworm AS dev
 
 COPY bashrc /root/.bashrc
@@ -15,7 +35,7 @@ RUN go mod download
 ADD . .
 RUN go mod tidy
 
-RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker main.go
+RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker .
 
 FROM scratch
 
