@@ -11,6 +11,6 @@ kafka:
   zookeeper:
     enabled: true
   persistence:
-    enabled: false
+    enabled: true
   externalZookeeper:
     enabled: false

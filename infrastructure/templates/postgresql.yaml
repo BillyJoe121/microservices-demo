@@ -1,6 +1,20 @@
 # PostgreSQL deployment
 {{- if .Values.postgresql.enabled }}
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-data
+  labels:
+    app: postgresql
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: postgresql
@@ -34,6 +48,10 @@ spec:
         app: postgresql
         component: database
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: postgresql
           image: bitnami/postgresql:15
@@ -44,6 +62,8 @@ spec:
               value: {{ .Values.postgresql.auth.password }}
             - name: POSTGRESQL_DATABASE
               value: {{ .Values.postgresql.auth.database }}
+            - name: BITNAMI_DEBUG
+              value: "false"
           ports:
             - name: postgresql
               containerPort: 5432
@@ -76,4 +96,11 @@ spec:
             requests:
               memory: "256Mi"
               cpu: "250m"
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgresql-data
 {{- end }}
