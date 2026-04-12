@@ -7,8 +7,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - name: vote
-    port: 8080
+    - name: vote
+      port: 8080
   selector:
     app: vote
-  
