@@ -26,6 +26,8 @@ runs:
   steps:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+      with:
+        driver: docker
 
     - name: 🔑 Login to Docker Hub
       if: github.event_name == 'push'
@@ -34,20 +36,18 @@ runs:
         username: ${{ inputs.docker_username }}
         password: ${{ inputs.docker_password }}
 
-    - name: 🐳 Build Docker image
+    - name: 🐳 Build and load Docker image
       uses: docker/build-push-action@v5
       with:
         context: ${{ inputs.context }}
         push: false
         load: true
-        tags: |
-          ${{ inputs.image_name }}:local-test
-          ${{ inputs.image_name }}:latest
-          ${{ inputs.image_name }}:${{ inputs.github_sha }}
-          ${{ inputs.image_name }}:v1.${{ inputs.github_run_number }}
+        tags: ${{ inputs.image_name }}:local-test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     - name: 🛡️ Run Trivy Vulnerability Scanner
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@v0.28.0
       with:
         image-ref: '${{ inputs.image_name }}:local-test'
         format: 'table'
@@ -65,4 +65,6 @@ runs:
         tags: |
           ${{ inputs.image_name }}:latest
           ${{ inputs.image_name }}:${{ inputs.github_sha }}
-          ${{ inputs.image_name }}:v1.${{ inputs.github_run_number }}
+          ${{ inputs.image_name }}:v1.${{ github.run_number }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
