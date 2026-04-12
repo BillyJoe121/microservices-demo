@@ -24,7 +24,3 @@ The GitHub Actions pipelines serve as continuous verification gates:
 Verification does not stop after deployment. The Kubernetes manifests implement active, running verification:
 - **Liveness Probes:** Kublet periodically executes commands (like `pg_isready` for Postgres) or hits HTTP endpoints to verify the internal application state hasn't deadlocked.
 - **Readiness Probes:** The Service load balancers verify that a pod is fully initialized before routing traffic to it, preventing 502 Bad Gateway errors during rollouts.
-
-## 6. Technical Defense Highlights
-When presenting the validation strategy, emphasize:
-> "We don't rely on 'hope' for deployments to work. Validation is systemic at every layer: Yamllint for syntax verification, Checkstyle/Golangci for logic verification, Trivy/Checkov for security verification, and Kubernetes health probes for live runtime verification. Our pipeline logs prove that every stage functions as a strict quality gate."
