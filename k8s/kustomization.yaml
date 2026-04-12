@@ -11,6 +11,8 @@ resources:
   - result.yaml
   - worker.yaml
   - ingress.yaml
+  - network-policy.yaml
+  - secret.yaml
 
 # Common labels to apply to all resources and selectors
 commonLabels:
@@ -18,14 +20,13 @@ commonLabels:
   managed-by: kustomize
 
 # Image overrides to replace placeholders with actual images
-# In a real pipeline, the tag would be updated dynamically
 images:
   - name: vote-service
     newName: billyjoe121/vote
-    newTag: latest
+    newTag: v1.0.0
   - name: result-service
     newName: billyjoe121/result
-    newTag: latest
+    newTag: v1.0.0
   - name: worker-service
     newName: billyjoe121/worker
-    newTag: latest
+    newTag: v1.0.0
