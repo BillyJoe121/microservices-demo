@@ -47,7 +47,7 @@ runs:
         cache-to: type=gha,mode=max
 
     - name: 🛡️ Run Trivy Vulnerability Scanner
-      uses: aquasecurity/trivy-action@v0.2.6
+      uses: aquasecurity/trivy-action@v0.35.0
       with:
         image-ref: '${{ inputs.image_name }}:local-test'
         format: 'table'
