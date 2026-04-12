@@ -6,8 +6,8 @@ metadata:
 spec:
   podSelector: {}
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -17,13 +17,13 @@ metadata:
 spec:
   podSelector: {}
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  - from:
-    - podSelector: {} # Allow traffic from other pods in the same namespace
+    - from:
+        - podSelector: {} # Allow traffic from other pods in the same namespace
   egress:
-  - to:
-    - podSelector: {} # Allow traffic to other pods in same namespace
-    - ipBlock:
-        cidr: 0.0.0.0/0 # Allow egress to external services (Kafka/DB if outside)
+    - to:
+        - podSelector: {} # Allow traffic to other pods in same namespace
+        - ipBlock:
+            cidr: 0.0.0.0/0 # Allow egress to external services (Kafka/DB if outside)

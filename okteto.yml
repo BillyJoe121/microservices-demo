@@ -33,7 +33,7 @@ dev:
     sync:
       - ./vote:/app
     forward:
-    - 5005:5005
+      - 5005:5005
     persistentVolume:
       enabled: false
 
@@ -50,7 +50,7 @@ dev:
     securityContext:
       capabilities:
         add:
-        - SYS_PTRACE
+          - SYS_PTRACE
     sync:
       - ./worker:/app
     forward:

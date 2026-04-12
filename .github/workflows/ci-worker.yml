@@ -2,11 +2,11 @@ name: CI - Worker Service
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
     paths:
       - 'worker/**'
   pull_request:
-    branches: [main]
+    branches: ["main"]
     paths:
       - 'worker/**'
 

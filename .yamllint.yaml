@@ -1,15 +1,32 @@
 # Yamllint configuration
 extends: default
 
+ignore: |
+  node_modules/
+  **/node_modules/
+  target/
+  vendor/
+  .git/
+  .idea/
+  .vscode/
+  infrastructure/templates/
+  **/chart/templates/
+
 rules:
   line-length:
-    max: 120
+    max: 200 # Accommodate long connection strings and K8s paths
     allow-non-breakable-words: true
   indentation:
     spaces: 2
+    check-multi-line-strings: false
   brackets:
     min-spaces-inside: 0
     max-spaces-inside: 0
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1 # Required for Helm/Go templates {{ ... }}
   comments:
     min-spaces-from-content: 1
   document-start: disable
+  truthy:
+    allowed-values: ["true", "false", "on", "off"] # GHA uses "on" for triggers
