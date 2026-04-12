@@ -73,9 +73,6 @@ func (k *KafkaStrategy) Connect(ctx context.Context) error {
     return nil
 }
 
-func init() {
-    rand.Seed(time.Now().UnixNano())
-}
 
 // RetryUntilConnected executes the provided strategy and retries using
 // exponential backoff with jitter until it succeeds, the context is

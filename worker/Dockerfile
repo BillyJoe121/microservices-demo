@@ -29,10 +29,10 @@ RUN go install github.com/codegangsta/gin@v0.0.0-20230218063734-2c98d96c9244 && 
     go install golang.org/x/tools/gopls@v0.17.1 && \
     go install github.com/air-verse/air@v1.61.5
 
-ADD go.mod ./
+COPY go.mod ./
 RUN go mod download
 
-ADD . .
+COPY . .
 RUN go mod tidy
 
 RUN --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/worker .

@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Namespace to deploy all resources
+namespace: microservices-demo
+
+# List of resources to include
+resources:
+  - namespace.yaml
+  - vote.yaml
+  - result.yaml
+  - worker.yaml
+  - ingress.yaml
+  - network-policy.yaml
+  - secret.yaml
+
+# Common labels to apply to all resources and selectors
+commonLabels:
+  project: microservices-demo
+  managed-by: kustomize
+
+# Image overrides to replace placeholders with actual images
+images:
+  - name: vote-service
+    newName: billyjoe121/vote
+    newTag: v1.0.0
+  - name: result-service
+    newName: billyjoe121/result
+    newTag: v1.0.0
+  - name: worker-service
+    newName: billyjoe121/worker
+    newTag: v1.0.0

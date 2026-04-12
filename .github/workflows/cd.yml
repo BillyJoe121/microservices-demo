@@ -2,7 +2,7 @@ name: Continuous Deployment
 
 on:
   workflow_run:
-    workflows: 
+    workflows:
       - "CI - Result Service"
       - "CI - Vote Service"
       - "CI - Worker Service"
@@ -16,7 +16,7 @@ jobs:
   deploy-staging:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: staging
       url: https://staging.microservices-demo.com
     # Ensure this runs only if CI was successful or manually triggered
@@ -24,11 +24,12 @@ jobs:
     steps:
       - name: 📝 ARCHITECTURE NOTICE
         run: |
-          echo "::warning::This is a simulated deployment pipeline designed to satisfy the DevOps 'Development Pipelines' rubric. Due to a lack of active target runtime infrastructure, actual Kubernetes deployment commands are mocked. However, the architectural design (environments, image promotion, gates) represents a production-grade CD pipeline."
+          echo "::warning::This is a simulated deployment pipeline designed to satisfy the DevOps 'Development Pipelines' rubric."
+          echo "Due to a lack of active target runtime infrastructure, actual Kubernetes deployment commands are mocked."
+          echo "However, the architectural design (environments, image promotion, gates) represents a production-grade CD pipeline."
 
       - name: Checkout deployment manifests
         uses: actions/checkout@v4
-          
       - name: 🔀 Update Image Tags for Staging (Mock)
         run: |
           echo "Simulating dynamic image tag substitution for Staging..."
@@ -47,7 +48,7 @@ jobs:
     name: 👑 Deploy to Production
     needs: deploy-staging
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: production
       url: https://microservices-demo.com
     steps:

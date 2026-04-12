@@ -2,11 +2,11 @@ name: CI - Vote Service
 
 on:
   push:
-    branches: [main]
+    branches: ["main"]
     paths:
       - 'vote/**'
   pull_request:
-    branches: [main]
+    branches: ["main"]
     paths:
       - 'vote/**'
 

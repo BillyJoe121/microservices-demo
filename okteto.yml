@@ -20,9 +20,10 @@ build:
 
 deploy:
   - helm upgrade --install infrastructure infrastructure/
-  - helm upgrade --install vote vote/chart --set image=${OKTETO_BUILD_VOTE_IMAGE}
-  - helm upgrade --install result result/chart --set image=${OKTETO_BUILD_RESULT_IMAGE}
-  - helm upgrade --install worker worker/chart --set image=${OKTETO_BUILD_WORKER_IMAGE}
+  - cd k8s && kustomize edit set image vote-service=${OKTETO_BUILD_VOTE_IMAGE}
+  - cd k8s && kustomize edit set image result-service=${OKTETO_BUILD_RESULT_IMAGE}
+  - cd k8s && kustomize edit set image worker-service=${OKTETO_BUILD_WORKER_IMAGE}
+  - kubectl apply -k k8s
 
 forward:
   - 5432:postgresql:5432
@@ -33,7 +34,7 @@ dev:
     sync:
       - ./vote:/app
     forward:
-    - 5005:5005
+      - 5005:5005
     persistentVolume:
       enabled: false
 
@@ -50,7 +51,7 @@ dev:
     securityContext:
       capabilities:
         add:
-        - SYS_PTRACE
+          - SYS_PTRACE
     sync:
       - ./worker:/app
     forward:
