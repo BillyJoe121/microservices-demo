@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result
+  namespace: microservices-demo
+  labels:
+    app: result
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+      - name: result
+        image: ${DOCKER_USERNAME}/result:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: DATABASE_URL
+          value: "postgres://okteto:okteto@postgresql:5432/votes"
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: result
+  namespace: microservices-demo
+spec:
+  type: LoadBalancer # Representing an external edge service
+  selector:
+    app: result
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http

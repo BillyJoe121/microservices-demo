@@ -1,0 +1,99 @@
+name: Infrastructure Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - 'k8s/**'
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
+      - 'okteto.yml'
+      - '.github/workflows/infrastructure.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - 'k8s/**'
+      - '**/Dockerfile'
+      - 'docker-compose.yml'
+      - 'okteto.yml'
+      - '.github/workflows/infrastructure.yml'
+
+jobs:
+  validate-docker:
+    name: 🐳 Lint Dockerfiles
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          recursive: true
+          ignore: DL3008,DL3015 # Ignoring common noise for debian/node images
+          failure-threshold: error
+
+  validate-compose:
+    name: 🏗️ Validate Docker Compose
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Validate Compose File
+        run: docker compose config -q
+
+  validate-helm:
+    name: ☸️ Lint & Package Helm Charts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Set up Helm
+        uses: azure/setup-helm@v4.2.0
+
+      - name: 🔍 Find and Lint All Charts
+        run: |
+          find . -name "Chart.yaml" -exec dirname {} \; | while read chart_dir; do
+            echo "Linting chart in $chart_dir"
+            helm lint "$chart_dir"
+          done
+
+      - name: 📦 Package Infrastructure Chart
+        run: |
+          mkdir -p dist
+          helm package infrastructure/ --destination dist/
+
+      - name: 🗳️ Upload Helm Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-infrastructure-package
+          path: dist/*.tgz
+
+  security-scan:
+    name: 🛡️ IaC Security Scan (Checkov)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🕵️ Run Checkov Static Analysis
+        uses: bridgecrewio/checkov-action@v12.3023.0
+        with:
+          directory: .
+          framework: kubernetes,helm,dockerfile
+          quiet: true
+          soft_fail: true
+          output_format: cli,sarif
+          output_directory: checkov_reports
+          # Explicitly target infra directories to differentiate from app code
+          check: CKV_K8S_1,CKV_K8S_2,CKV_DOCKER_1,CKV_DOCKER_2 
+
+      - name: 🗳️ Upload Checkov Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkov-report
+          path: checkov_reports
