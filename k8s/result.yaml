@@ -15,9 +15,12 @@ spec:
       labels:
         app: result
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
       containers:
       - name: result
-        image: ${DOCKER_USERNAME}/result:latest
+        image: result-service # Placeholder for Kustomize
         imagePullPolicy: Always
         ports:
         - containerPort: 80
@@ -32,6 +35,23 @@ spec:
           requests:
             cpu: "100m"
             memory: "128Mi"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
 ---
 apiVersion: v1
 kind: Service
@@ -39,7 +59,7 @@ metadata:
   name: result
   namespace: microservices-demo
 spec:
-  type: LoadBalancer # Representing an external edge service
+  type: LoadBalancer
   selector:
     app: result
   ports:

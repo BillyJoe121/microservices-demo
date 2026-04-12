@@ -21,6 +21,18 @@ on:
       - '.github/workflows/infrastructure.yml'
 
 jobs:
+  validate-yaml:
+    name: 📄 Lint YAML Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Yamllint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yaml
+
   validate-docker:
     name: 🐳 Lint Dockerfiles
     runs-on: ubuntu-latest
@@ -31,8 +43,8 @@ jobs:
       - name: 🔍 Run Hadolint
         uses: hadolint/hadolint-action@v3.1.0
         with:
+          # Configuration is automatically picked up from .hadolint.yaml
           recursive: true
-          ignore: DL3008,DL3015 # Ignoring common noise for debian/node images
           failure-threshold: error
 
   validate-compose:

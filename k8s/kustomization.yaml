@@ -10,8 +10,22 @@ resources:
   - vote.yaml
   - result.yaml
   - worker.yaml
+  - ingress.yaml
 
 # Common labels to apply to all resources and selectors
 commonLabels:
   project: microservices-demo
   managed-by: kustomize
+
+# Image overrides to replace placeholders with actual images
+# In a real pipeline, the tag would be updated dynamically
+images:
+  - name: vote-service
+    newName: billyjoe121/vote
+    newTag: latest
+  - name: result-service
+    newName: billyjoe121/result
+    newTag: latest
+  - name: worker-service
+    newName: billyjoe121/worker
+    newTag: latest

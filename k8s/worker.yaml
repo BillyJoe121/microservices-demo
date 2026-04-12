@@ -15,9 +15,12 @@ spec:
       labels:
         app: worker
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
       containers:
       - name: worker
-        image: ${DOCKER_USERNAME}/worker:latest
+        image: worker-service # Placeholder for Kustomize
         imagePullPolicy: Always
         args: ["--topic", "votes", "--retry-max-attempts", "0", "--retry-initial-backoff-ms", "1000"]
         env:
@@ -32,3 +35,19 @@ spec:
           requests:
             cpu: "100m"
             memory: "128Mi"
+        # Since worker is a background process, we don't have an HTTP health check.
+        # We can use an exec probe if there's a command to check health.
+        # For simplicity in demo, we'll use a basic shell probe.
+        livenessProbe:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - ps aux | grep -v grep | grep worker
+          initialDelaySeconds: 30
+          periodSeconds: 60
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
