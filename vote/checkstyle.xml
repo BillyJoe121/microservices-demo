@@ -7,11 +7,10 @@
   <!-- Permissive configuration for academic demo -->
   <property name="fileExtensions" value="java, properties, xml"/>
 
-  <!-- Disable checks for newlines at end of file -->
-  <!-- <module name="NewlineAtEndOfFile"/> - Removing this disables it -->
-
-  <!-- Disable checks for Tabs -->
-  <!-- <module name="FileTabCharacter"/> - Removing this disables it -->
+  <!-- Relax Line Length (Global Checker module) -->
+  <module name="LineLength">
+    <property name="max" value="160"/>
+  </module>
 
   <module name="TreeWalker">
     <!-- Basic checks that are usually helpful but not annoying -->
@@ -26,26 +25,7 @@
     <module name="UnusedImports"/>
     
     <!-- EXPLICITLY DISABLED OR RELAXED RULES -->
-    
-    <!-- No Javadocs required -->
-    <!-- JavadocPackage, JavadocVariable, MissingJavadocMethod, etc. are NOT included -->
-
-    <!-- Allow non-final parameters -->
-    <!-- FinalParameters module is NOT included -->
-
-    <!-- Allow hidden fields (common in setters/constructors) -->
-    <!-- HiddenField module is NOT included -->
-
-    <!-- Allow class extension (DesignForExtension) -->
-    <!-- DesignForExtension module is NOT included -->
-
-    <!-- Relax Line Length -->
-    <module name="LineLength">
-      <property name="max" value="160"/>
-    </module>
-
-    <!-- Allow tabs in files -->
-    <!-- FileTabCharacter is a Checker module, not TreeWalker -->
+    <!-- No Javadocs, FinalParameters, HiddenFields, or DesignForExtension -->
 
   </module>
 </module>
