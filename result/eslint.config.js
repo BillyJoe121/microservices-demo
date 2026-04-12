@@ -1,4 +1,7 @@
-export default [
+module.exports = [
+  {
+    ignores: ["views/**", "node_modules/**"]
+  },
   {
     languageOptions: {
       ecmaVersion: 2022,
@@ -9,6 +12,10 @@ export default [
         process: "readonly",
         __dirname: "readonly",
         console: "readonly",
+        setTimeout: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        expect: "readonly"
       }
     },
     rules: {
