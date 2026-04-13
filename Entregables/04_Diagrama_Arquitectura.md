@@ -2,7 +2,7 @@
 
 ## Diagrama del Sistema
 
-![Diagrama de Arquitectura](../architecture.jpeg)
+![Diagrama de Arquitectura](../diagram.jpg)
 
 ---
 
