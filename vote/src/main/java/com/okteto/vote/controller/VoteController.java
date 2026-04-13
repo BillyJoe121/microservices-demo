@@ -42,6 +42,7 @@ public class VoteController {
         model.addAttribute("optionB", v.getOptionB());
         model.addAttribute("hostname", v.getHostname());
         model.addAttribute("vote", null);
+        System.out.println("Voter ID: " + voter);
 
         if (StringUtils.isEmpty(voter)) {
             voter = UUID.randomUUID().toString();
