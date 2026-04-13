@@ -4,4 +4,4 @@ metadata:
   name: microservices-demo
   labels:
     name: microservices-demo
-    environment: production
+    environment: demo
