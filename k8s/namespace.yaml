@@ -5,3 +5,6 @@ metadata:
   labels:
     name: microservices-demo
     environment: production
+  name: voting-app
+  labels:
+    environment: demo
